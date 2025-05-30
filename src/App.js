@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Advice from "./Advice";
 import Button from "./Boutton";
 import { motion, useScroll } from "motion/react";
@@ -7,18 +7,21 @@ const App = () => {
   const [count, setCount] = useState(0);
   const { scrollYProgress } = useScroll();
   const [isLoading, setIsLoading] = useState(false);
-
+  const [lastAdv, setLastAdv] = useState("");
   async function getAdvice() {
     setIsLoading(true); // début du chargement
 
     try {
-      const res = await fetch("https://api.adviceslip.com/advice");
+      const res = await fetch(
+        `https://api.adviceslip.com/advice?timestamp=${Date.now()}`
+      );
+
       const data = await res.json();
       const adv = data.slip.advice;
-
-      if (data) {
+      if (lastAdv !== adv) {
         seObjetAdvices((prev) => [{ advice: adv }, ...prev]);
         setCount((c) => c + 1);
+        setLastAdv(adv);
       }
     } catch (error) {
       console.error("Erreur API :", error);
@@ -26,9 +29,15 @@ const App = () => {
       setIsLoading(false); // fin du chargement, succès ou erreur
     }
   }
+  const didFetch = useRef(false);
+
   useEffect(() => {
-    getAdvice();
+    if (!didFetch.current) {
+      didFetch.current = true;
+      getAdvice();
+    }
   }, []);
+
   return (
     <>
       <motion.div
@@ -75,7 +84,8 @@ const App = () => {
           </div>
           <Advice
             className="min-h-[100px] mb-3 text-white"
-            msg={objAdvices.length > 0 ? objAdvices[0].advice : ""}
+            // msg={objAdvices.length > 0 ? objAdvices[0].advice : ""}
+            msg={objAdvices[0]?.advice}
           />
 
           <Button
@@ -87,33 +97,29 @@ const App = () => {
             {isLoading ? "Loading..." : "Get Advice"}
           </Button>
 
-          {objAdvices.length > 0
-            ? objAdvices.map((obj, i) => (
-                <motion.p
-                  key={`${i}-${obj.advice}`}
-                  initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
-                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
-                  onClick={() => {
-                    seObjetAdvices((prev) => {
-                      // Supprime l'élément cliqué de sa position actuelle
-                      const filtered = prev.filter(
-                        (a) => a.advice !== obj.advice
-                      );
-                      //console.log(filtered.length);
-                      setCount(filtered.length + 1);
-                      // Ajoute l'élément cliqué en haut
-                      return [obj, ...filtered];
-                    });
-                  }}
-                  className={`cursor-pointer border-l-4 pl-3 italic mt-2 mb-2 font-normal text-gray-300 dark:text-gray-300 min-h-10 shadow-md hover:shadow-xl transition-shadow duration-300 ${
-                    i % 2 === 0 ? "border-blue-400" : "border-orange-200"
-                  }`}
-                >
-                  {obj.advice}
-                </motion.p>
-              ))
-            : ""}
+          {objAdvices.map((obj, i) => (
+            <motion.p
+              key={`${i}-${obj.advice}`}
+              initial={{ opacity: 0, y: 20, filter: "blur(4px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 0.5, delay: i * 0.1 }}
+              onClick={() => {
+                seObjetAdvices((prev) => {
+                  // Supprime l'élément cliqué de sa position actuelle
+                  const filtered = prev.filter((a) => a.advice !== obj.advice);
+                  //console.log(filtered.length);
+                  setCount(filtered.length + 1);
+                  // Ajoute l'élément cliqué en haut
+                  return [obj, ...filtered];
+                });
+              }}
+              className={`cursor-pointer border-l-4 pl-3 italic mt-2 mb-2 font-normal text-gray-300 dark:text-gray-300 min-h-10 shadow-md hover:shadow-xl transition-shadow duration-300 ${
+                i % 2 === 0 ? "border-blue-400" : "border-orange-200"
+              }`}
+            >
+              {obj.advice}
+            </motion.p>
+          ))}
         </div>
 
         {/* <ul className="list-disc list-inside text-left text-gray-700">
