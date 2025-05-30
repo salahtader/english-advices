@@ -1,11 +1,9 @@
-export default function Button({ className, children, type, ...htmlProps }) {
+export default function Button({ children, ...htmlProps }) {
   // const className = `btn btn-${variant} btn-${size}`;
 
   return (
     <>
-      <button type={type} className={className} {...htmlProps}>
-        {children}
-      </button>
+      <button {...htmlProps}>{children}</button>
     </>
   );
 }

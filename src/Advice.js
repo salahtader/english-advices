@@ -1,7 +1,6 @@
 import { motion } from "framer-motion";
-import { useEffect } from "react";
 
-export default function Advice({ msg, children, ...props }) {
+export default function Advice({ msg, ...props }) {
   const defaultProps = {
     className: "card",
     role: "article",
@@ -63,7 +62,7 @@ export default function Advice({ msg, children, ...props }) {
           <span> Listen to the advice</span>
         </button>
       )}
-      <span>{children}</span>
+      {/* <span>{children}jjj</span> */}
     </motion.div>
   );
 }
